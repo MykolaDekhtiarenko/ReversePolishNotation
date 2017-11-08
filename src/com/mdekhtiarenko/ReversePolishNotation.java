@@ -45,6 +45,7 @@ public class ReversePolishNotation {
     }
 
     private boolean isFunction(String token) {
+//        System.out.println(token+" is function: "+functions.contains(token));
         if (functions.contains(token)) return true;
         return false;
     }
@@ -53,7 +54,8 @@ public class ReversePolishNotation {
         if (token.equals("(")) return 1;
         if (token.equals("+") || token.equals("-")) return 2;
         if (token.equals("*") || token.equals("/")) return 3;
-        return 4;
+        if (token.equals("^") || isFunction(token)) return 4;
+        return 5;
     }
 
     private void parse(String expr) throws Exception {
@@ -74,9 +76,6 @@ public class ReversePolishNotation {
                 else
                     reversePolishNotation.add(current);
             }
-            else if(isFunction(current)){
-                operationStack.add(current);
-            }
             else if(current.equals("(")){
                 operationStack.add(current);
             }
@@ -96,19 +95,24 @@ public class ReversePolishNotation {
             }
             previous = current;
         }
-        reversePolishNotation.addAll(operationStack);
+
+        while (!operationStack.isEmpty())
+            reversePolishNotation.add(operationStack.pollLast());
     }
 
     private void addOperatorToStack(String operator){
         if(operationStack.isEmpty()){
+//            System.out.println("Macив порожній: "+operationStack.toString()+", тому '"+operator+"' додаю в масив.");
             operationStack.add(operator);
         }
         else{
-            if(precedence(operationStack.getLast())>precedence(operator)){
+            if(!(precedence(operator)>precedence(operationStack.getLast()))){
+//                System.out.println("Macив: "+operationStack.toString()+"; Останній елемент '"+operationStack.getLast()+"' >= '"+operator+"';");
                 reversePolishNotation.add(operationStack.pollLast());
                 addOperatorToStack(operator);
             }
             else{
+//                System.out.println("Macив: "+operationStack.toString()+"; Останній елемент '"+operationStack.getLast()+"' < '"+operator+"' тому '"+operator+"' додаю в масив.");
                 operationStack.add(operator);
             }
         }
@@ -118,7 +122,6 @@ public class ReversePolishNotation {
         double returnValue = 0;
         Stack<String> stack = new Stack<>();
         for(String t : reversePolishNotation){
-            System.out.println(t);
             if(isOperand(t)){
                 stack.push(t);
             }
@@ -126,7 +129,6 @@ public class ReversePolishNotation {
                 if(isFunction(t)){
                     int index = functions.indexOf(t);
                     double a = Double.valueOf(stack.pop());
-                    System.out.println("F:"+a);
                     switch (index){
                         case 0:
                             stack.push(String.valueOf(Math.sin(Math.toRadians(a))));
@@ -164,7 +166,7 @@ public class ReversePolishNotation {
 
             }
         }
-        returnValue = Integer.valueOf(stack.pop());
+        returnValue = Double.valueOf(stack.pop());
 
         return returnValue;
 
